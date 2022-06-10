@@ -17,15 +17,13 @@ def pydeckMap(data):
                              get_position = ['long', 'lat'],
                              get_elevation = 'price',
                              elevation_scale = 100,
-                             radius = 5000,
+                             radius = 1000,
                              get_fill_color=[255, 165, 0, 80],
                              pickable = True,
                              auto_highlight = True)
-
     # render map
     # with no map_style, map goes to default
     column_layer_map = pdk.Deck(layers=column_layer, 
                                 initial_view_state=view)
-
     # display and save map (to_html(), show())
     st.pydeck_chart(column_layer_map)

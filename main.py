@@ -24,27 +24,31 @@ def sidebar(allRegionInCA):
         #
         # multi_select = st.sidebar.multiselect('multiselection', model, default=["gensim"])
         # slider_input = st.sidebar.slider('year', 0.01, 1.00, 0.01)
+        area = st.selectbox("select a region you want to view", (allRegionInCA))
         minPrice = st.number_input("Minimum Listing Price", min_value = 0, value = 1000, step = 1000)
         maxPrice = st.number_input("Maximum Listing Price", min_value = 0, value = 1000000, step = 1000)
-        area = st.selectbox("select a region you want to view", (allRegionInCA))
     return minPrice, maxPrice, area
 
 def readData(path):
-    df = pd.read_csv(path, nrows = 50000, usecols = ['id','state','region','lat', 'long','year','odometer','price','manufacturer', 'model'], dtype = {'price': "int64"})
-    print(df.columns)
-    df.dropna(inplace = True)
-    df = df.loc[df['price'] != 0]
-    df['year'] = df['year'].astype('int64')
-    print(df.head(400))
-    CAdf = df.loc[df["state"] == "ca"]
-    CAdf = CAdf.drop(columns=["state"])
-    return CAdf
-    print(CAdf)
+    with st.spinner("Loading, Please Wait!"):
+        df = pd.read_csv(path, usecols = ['id','state','region','lat', 'long','year','odometer','price','manufacturer', 'model'], dtype = {'price': "int64"})
+        df.dropna(inplace = True)
+        df = df.loc[df['price'] != 0]
+        df['year'] = df['year'].astype('int64')
+        allState = list(set(df["state"]))
+        allState.append("All States")
+        allState = sorted(allState)
+    return df, allState
 
-def countyDataVisualization(CAdf):
-    allRegionInCA = set(CAdf["region"])
+def selectState(stateCode):
+    state_df = df.loc[df["state"] == stateCode]
+    state_df = state_df.drop(columns=["state"])
+    return state_df
+
+def countyDataVisualization(state_df):
+    allRegionInCA = set(state_df["region"])
     minPrice, maxPrice, area = sidebar(allRegionInCA)
-    localCar = CAdf.loc[CAdf["region"] == area]
+    localCar = state_df.loc[state_df["region"] == area]
     n = len(localCar)
     year = localCar['year'].tolist()
     price = localCar['price'].tolist()
@@ -64,43 +68,30 @@ def countyDataVisualization(CAdf):
     fig = px.scatter(yearVSprice, x = "Year of Make", y = "Listing Price of Car in USD($)", trendline="lowess", trendline_options=dict(frac=0.8))
     st.plotly_chart(fig, use_container_width = True)
 
-def listingMap(df):
-    from bar_map import *
+def listingMap(data):
+    from bar_map import pydeckMap
     pydeckMap(data)
-
 
 def mapOfAveragePrice():
     m = leafmap.Map(center = (38, -122), zoom = 6, locate_control = True)
     m.add_basemap("OpenStreetMap")
     m.to_streamlit(weight = 1000, height = 600)
 
-def geocoder(county, state):
-    import requests
-    url = 'https://maps.googleapis.com/maps/api/geocode/json'
-    params = {'sensor': 'false', 'address': f'{county}, {state}', "key": "AIzaSyCGzBsXrhvBlwQ8RO2dulq6A2Qv2nUgh-Y"}
-    r = requests.get(url, params=params)
-    results = r.json()['results']
-    if results:
-        location = results[0]['geometry']['location']
-        latitude = location['lat']
-        longtitude = location['lng']
-        st.write(location['lat'], location['lng'])
-        writeCSV(csvFilePath, county, state, latitude, longtitude)
-        return location['lat'], location['lng']
-    if not results:
-        return "Location not found "
+@st.cache(allow_output_mutation = True)
+def load_model(path):
+    df, allState = readData(path)
+    return df, allState
 
-def writeCSV(csvFilePath, county, state, latitude, longtitude):
-    import csv
-    with open('county2latitude.csv', 'w', newline='') as csvFilePath:
-        spamwriter = csv.writer(csvFilePath, delimiter=',')
-        spamwriter.writerow(['county', 'state', 'latitude', 'longitude'])
-        spamwriter.writerow([county, state, latitude, longtitude])
+# df, allState = readData("C:/Users/13520/Documents/GitHub/Used_Car_Analysis/used_car_us.csv")
+df, allState = load_model("C:/Users/13520/Documents/GitHub/Used_Car_Analysis/used_car_us.csv")
 
-
-CAdf = readData("C:/Users/13520/Documents/GitHub/Used_Car_Analysis/used_car_us.csv")
+stateCode = st.sidebar.selectbox("select a region you want to view", (allState))
+if stateCode == "All States":
+    state_df = df
+else:
+    state_df = selectState(stateCode)
 with st.container():
-    countyDataVisualization(CAdf)
-
+    countyDataVisualization(state_df)
+    listingMap(state_df)
 # mapOfAveragePrice()
 # geocoder("santa barbara", "ca")
