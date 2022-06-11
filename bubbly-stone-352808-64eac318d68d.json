@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "bubbly-stone-352808",
+  "private_key_id": "64eac318d68dba4cd7b04392f14669789a21a5e9",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQC9pRyM977vp0Pq\nMzix/M/lKyd1u15HHt4ay6T1+1giaSMyVkaZq8YE+u1imsIX6mMLdYuYBXwixw65\nZ/MEd4vWA92bm+IGVV7Al9GCBgk1wLr3h4Rvv8FIZp7wGLI7H7F2eloselKzPniU\nt8+mguts4+l6UJirBRIsB6irmBnAfaWpbdMFqozjCkwMD/wxe3x5iCDXeIE63JvN\ndLk+QTFBSKeliBzMZkjVy5X4s1QjYCFuQ69pmefJ2V0PgN3ja37Hyu/bT49c0PlR\n1IznV9DUuz1AotLXNf9tBiXtng2bZtLoKKXZscR6i7JR/CVg1G+bgTLhmlpdHeKb\nRXXDeRzpAgMBAAECgf9DurQuf7pDk8JkdHjvqn8nWWa+XCx0FW2GbX2hN5CLlQD8\n+UDP6j/y9RiuHpczF/BHlSEhKfjicsdhuSvs/sTyPG8x/1WVNp7pl07yjqMEj4db\nKQr+3g9OFVhk+ZGJQuz5rG+sl3Dxt6cPvygg4g6gQsVo6akKRnw29Dwkei3c2dMs\nbMWP7KnOQH0F9kCCedPxTpMHGzHG/we90hltBnIL0BInlV7BhiCh6JxlkwRo6qcw\nJDoRt88CqxKUboTzr8Asbf+h82cWmaCLyeYYQfTmS13kw/OInZay5iPrwoXmJTKQ\nICTzWaNHXYKCfLH+nBWv5THAi1iEfclp7c2P+AECgYEA4XUYnfu5DrYjqiCsJrfr\naSmPs4S+ZcK+PBlEpHU2ybor5vC9cPOyfM502Ei+YhIjzpciFoqh9Kg/HyO8tUKy\n1v/M67aZutVtvba78Cj8xhzj1cxofrxSRK74VGR7oE+aTVnADpoApXKRdfHIjf4U\nou0TUkUuAReMG2JBbN4PzOUCgYEA11YIj3mYD7sjaL+6qcEf7iP+Lfxr4phigz0B\nU7HkXVP9OZj1mhiZUspwDztwL7Y4jCW01eGF5Eqqzzn0R/QlFpKv7ytAiAT61GWI\nKquEf3pWqIcOw0SAlkMWqz1p+9ntc5K0NdXoRhH4ByA10Tyx+kAVzzLBRkxs7Rac\noLhzU7UCgYEAtdNv9Qlr57dw7+XFsLwnePpx0D/AJeV28pUWTOPTOcGRYoDI521C\nh3EhvsR79i/W/OfaL//COcPulDiIGk8eWFKYe4kaVhmGlbfnvfnwUf4+qNBffcZ3\nOrk5wSYApftM4BD/2UbOOqA5O7uxGQLOtc8pA/KS9YJ+Fh+Z0CkO6RkCgYEAn+ZB\n2xBmqx/CbnEY0h8Xb8WIZGtxTUTsuhld1+Fb+zV37wI3NiMYD1NFnPn9F2DPYrpJ\nKx0ZSGltpw2Y6KlRtQ5d2FKcy6QvAfMXBuBwNh0JJoGLo9JFTc8pkSS8g4jS+yQv\n714U6ZtEOz5e2C2i13oo97/vpxzvMaq9ydbNxJUCgYAD4/OYpcf6R6TTkzbJ1kX2\nVVBpIMoXa5MIjwPmGp5c8hThKU/MlEnXfPhnwRwLoSYe7j4f7xsuCRtH7GLqYJO6\nZvyFEL+cfKUOKrpacjFH5bLGs7VzKLNSu8JKM0zTHno/wrfTdpbGTHpJHgS1SVnD\np80zyilzVuXZGBUwQ/xUdQ==\n-----END PRIVATE KEY-----\n",
+  "client_email": "streamlit-service-account@bubbly-stone-352808.iam.gserviceaccount.com",
+  "client_id": "109971162128400465139",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/streamlit-service-account%40bubbly-stone-352808.iam.gserviceaccount.com"
+}

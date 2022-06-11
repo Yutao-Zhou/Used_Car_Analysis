@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import leafmap.foliumap as leafmap
+import dask.dataframe as dd
+# import leafmap.foliumap as leafmap
 from stateCode2state import name2code, code2name
 
 st.set_page_config(
@@ -28,7 +29,16 @@ def sidebar(allRegionInCA, stateCode):
 
 def readData(path):
     with st.spinner("Loading, Please Wait!"):
-        df = pd.read_csv(path, usecols = ['id','state','region','lat', 'long','year','odometer','price','manufacturer', 'model'], dtype = {'price': "int64"})
+        dtypes = {'id': 'uint8',
+                'state': 'str',
+                'region': 'str',
+                'lat': 'float32', 
+                'long': 'float32',
+                'manufacturer': 'str',
+                'model': 'str'
+                }
+        dask = dd.read_csv(path, skip_blank_lines=True, usecols = ['id','state','region','lat', 'long','year','odometer','price','manufacturer', 'model'], dtype = dtypes)
+        df = dask.compute()
         df.dropna(inplace = True)
         df = df.loc[df['price'] != 0]
         df['year'] = df['year'].astype('int64')
@@ -60,7 +70,6 @@ def countyDataVisualization(state_df, stateCode):
     averagePrice = totalPrice // n
     averageYear = totalYear // n
     st.write(f"There are {n} listed car in {area}{stateCode}. The average model year is {averageYear}. The average price is {averagePrice} USD($).")
-    # yearVSprice = pd.DataFrame(data = {"Year of Make":localCar['year'], "Price of Car in USD($)":localCar['price']})
     with st.expander("Click to view data"):
         st.dataframe(localCar,1000,500)
     scatterTrend(localCar)
