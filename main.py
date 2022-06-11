@@ -29,16 +29,39 @@ def sidebar(allRegionInCA, stateCode):
 
 def readData(path):
     with st.spinner("Loading, Please Wait!"):
-        dtypes = {'id': 'uint8',
-                'state': 'str',
-                'region': 'str',
-                'lat': 'float32', 
-                'long': 'float32',
-                'manufacturer': 'str',
-                'model': 'str'
-                }
-        dask = dd.read_csv(path, skip_blank_lines=True, usecols = ['id','state','region','lat', 'long','year','odometer','price','manufacturer', 'model'], dtype = dtypes)
-        df = dask.compute()
+        from google.oauth2 import service_account
+        from google.cloud import storage
+
+        # Create API client.
+        credentials = service_account.Credentials.from_service_account_info(
+            st.secrets["gcp_service_account"]
+        )
+        client = storage.Client(credentials=credentials)
+
+        # Retrieve file contents.
+        # Uses st.experimental_memo to only rerun when the query changes or after 10 min.
+        @st.experimental_memo(ttl=600)
+        def read_file(bucket_name, file_path):
+            bucket = client.bucket(bucket_name)
+            content = bucket.blob(file_path).download_as_string().decode("utf-8")
+            return content
+
+        bucket_name = "us_used_car_data"
+        file_path = "used_car_us.csv"
+
+        content = read_file(bucket_name, file_path)
+
+        # dtypes = {'id': 'uint8',
+        #         'state': 'str',
+        #         'region': 'str',
+        #         'lat': 'float32', 
+        #         'long': 'float32',
+        #         'manufacturer': 'str',
+        #         'model': 'str'
+        #         }
+        # dask = dd.read_csv(path, skip_blank_lines=True, usecols = ['id','state','region','lat', 'long','year','odometer','price','manufacturer', 'model'], dtype = dtypes)
+        # df = dask.compute()
+        df = content
         df.dropna(inplace = True)
         df = df.loc[df['price'] != 0]
         df['year'] = df['year'].astype('int64')
@@ -114,7 +137,6 @@ def load_model(path):
     df, allState = readData(path)
     return df, allState
 
-# df, allState = readData("C:/Users/13520/Documents/GitHub/Used_Car_Analysis/used_car_us.csv")
 df, allState = load_model("C:/Users/13520/Documents/GitHub/Used_Car_Analysis/used_car_us.csv")
 stateName = st.sidebar.selectbox("Select a state you want to view", (allState))
 if stateName == "All States":
