@@ -6,7 +6,7 @@ from google.cloud import storage
 credentials = service_account.Credentials.from_service_account_info(
     st.secrets["gcp_service_account"]
 )
-client = storage.Client(credentials=credentials)
+client = storage.Client(credentials=credentials) # noqa
 
 # Retrieve file contents.
 # Uses st.experimental_memo to only rerun when the query changes or after 10 min.

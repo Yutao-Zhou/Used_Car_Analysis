@@ -4,7 +4,7 @@ import numpy as np
 
 def pydeckMap(data):
     import pydeck as pdk
-    view = pdk.ViewState(latitude = 39.155726, longitude = -98.030561, pitch = 50, zoom = 4)
+    view = pdk.ViewState(latitude = 39.155726, longitude = -98.030561, pitch = 50, zoom = 3.5)
     column_layer = pdk.Layer('ColumnLayer',
                              data = data,
                              get_position = ['long', 'lat'],
