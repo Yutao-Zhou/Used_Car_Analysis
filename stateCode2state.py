@@ -1,3 +1,4 @@
+import streamlit as st
 def name2code(stateName):
     dictionary = {
     "Alabama": "AL",
@@ -56,9 +57,17 @@ def name2code(stateName):
     "Northern Mariana Islands": "MP",
     "Puerto Rico": "PR",
     "United States Minor Outlying Islands": "UM",
+    "United States": "United States",
     "U.S. Virgin Islands": "VI",
+    "All States": "United States"
     }
-    return dictionary[stateName].lower()
+    if type(stateName) == str:
+        return dictionary[stateName].lower()
+    if type(stateName) == list:
+        stateCode = []
+        for n in stateName:
+            stateCode.append(dictionary[n].lower())
+        return stateCode
 
 def code2name(stateCode):
     dictionary = {
@@ -118,6 +127,14 @@ def code2name(stateCode):
     "MP" : "Northern Mariana Islands",
     "PR" : "Puerto Rico",
     "UM" : "United States Minor Outlying Islands",
-    "VI" : "U.S. Virgin Islands"
+    "UNITED STATES": "United States",
+    "VI" : "U.S. Virgin Islands",
+    "All States": "United States"
     }
-    return dictionary[stateCode.upper()]
+    if type(stateCode) == str:
+        return dictionary[stateCode.upper()]
+    if type(stateCode) == list:
+        stateName = []
+        for n in stateName:
+            stateCode.append(dictionary[n.upper()])
+        return stateName
