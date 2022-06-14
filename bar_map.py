@@ -1,10 +1,26 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import dask.dataframe as dd
+import pydeck as pdk
 
-def listingMap(data):
-    import pydeck as pdk
-    view = pdk.ViewState(latitude = 39.155726, longitude = -98.030561, pitch = 50, zoom = 3.5)
+def state2Coor(stateName):
+    if (type(stateName) == list and len(stateName) > 1) or stateName == "All States":
+        return 39.155726, -98.030561, 3.5
+    else:
+        path = "C:/Users/13520/Documents/GitHub/Used_Car_Analysis/statelatlong.csv"
+        dask = dd.read_csv(path, dtype = {"State":str, "Name": str, "Latitude": float, "Longitude": float})
+        df = dask.compute()
+        if type(stateName) == list and len(stateName) == 1:
+            stateName = stateName[0]
+        stateDf = df.loc[df['Name'] == stateName]
+        latitude = float(stateDf['Latitude'])
+        Longitude = float(stateDf['Longitude'])
+        return latitude, Longitude, 5
+
+def listingMap(data, stateName):
+    latitude, longitude, zoom = state2Coor(stateName)
+    view = pdk.ViewState(latitude = latitude, longitude = longitude, pitch = 50, zoom = zoom)
     column_layer = pdk.Layer('ColumnLayer',
                              data = data,
                              get_position = ['long', 'lat'],

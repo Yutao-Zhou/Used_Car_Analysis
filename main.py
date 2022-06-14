@@ -5,29 +5,36 @@ import dask.dataframe as dd
 # import leafmap.foliumap as leafmap
 from stateCode2state import name2code, code2name
 from scatterPlot import scatterTrend
-from bar_map import listingMap
+from bar_map import state2Coor, listingMap
 from manufacturePlot import manufacture
 
 st.set_page_config(
-    page_title="Used Car Analyzer",
-    page_icon="",
+    page_title = "Used Car Analyzer",
+    page_icon = ":car:",
     layout = "wide",
     initial_sidebar_state = "auto",
-    menu_items = {"About": "Personal project by Yutao Zhou"}
+    menu_items = {"About": "Personal project by Yutao Zhou", "Report a Bug": "https://github.com/Yutao-Zhou", "Get help": "https://yutao-zhou.github.io/CV/"}
 )
-
+hide_footer = """
+            <style>
+            footer {visibility:hidden;}
+            </style>
+            """
+st.markdown(hide_footer, unsafe_allow_html = True)
 st.title("Used Car Analyzer")
 
 def sidebar(allRegionInState, stateCode):
     with st.sidebar:
         if stateCode == "United States":
             area = "Entire state"
-            minPrice = st.number_input("Minimum Price", min_value = 0, value = 1000, step = 1000)
-            maxPrice = st.number_input("Maximum Price", min_value = 0, value = 100000, step = 1000)
+            minPrice = st.number_input("Minimum Price", min_value = 1, value = 1000, step = 1000)
+            maxPrice = st.number_input("Maximum Price", min_value = minPrice, value = 100000, step = 1000)
         else:
-            area = st.selectbox("Select a region you want to view", (allRegionInState))
-            minPrice = st.number_input("Minimum Price", min_value = 0, value = 1000, step = 1000)
-            maxPrice = st.number_input("Maximum Price", min_value = 0, value = 100000, step = 1000)
+            area = "Entire state"
+            if type(stateCode) != list:
+                area = st.selectbox("Select a region you want to view", (allRegionInState))
+            minPrice = st.number_input("Minimum Price", min_value = 1, value = 1000, step = 1000)
+            maxPrice = st.number_input("Maximum Price", min_value = minPrice, value = 100000, step = 1000)
     return minPrice, maxPrice, area
 
 def readData(path):
@@ -52,7 +59,8 @@ def readData(path):
             allState.append(code2name(stateCode))
         allState = sorted(allState)
         allState = ["All States"] + allState
-    return df, allState
+        totalNumberOfListing = len(df)
+    return df, allState, totalNumberOfListing
 
 def selectState(stateCode):
     if type(stateCode) == str:
@@ -61,7 +69,7 @@ def selectState(stateCode):
         state_df = df.loc[df['state'].isin(stateCode)]
     return state_df
 
-def countyDataVisualization(state_df, stateCode):
+def dataPreprocessing(state_df, stateCode):
     if type(stateCode) == str:
         allRegionInState = sorted(list(set(state_df["region"])) + ['Entire state'])
         minPrice, maxPrice, area = sidebar(allRegionInState, stateCode)
@@ -71,31 +79,40 @@ def countyDataVisualization(state_df, stateCode):
         else:
             localCar = state_df[state_df["region"] == area]
             area = area + ", "
-        localCar = localCar[(localCar['price'] != 0) & (localCar['price'] < maxPrice) & (localCar['price'] > minPrice)]
-        n, averagePrice, averageYear = calcuateAveragePrice(localCar)
-        state_name = code2name(stateCode)
-        st.markdown(f"There are **{n}** listed car in **{area}{state_name}**. The average model year is **{averageYear}**. The average price is **{averagePrice}** USD($).")
-        with st.expander("Click to view data"):
-            st.dataframe(localCar,1000,500)
+        localCar = localCar[(localCar['price'] <= maxPrice) & (localCar['price'] >= minPrice)]
     if type(stateCode) == list:
         area = ""
         localCar = {}
-        minPrice = st.sidebar.number_input("Minimum Price", min_value = 0, value = 1000, step = 1000)
-        maxPrice = st.sidebar.number_input("Maximum Price", min_value = 0, value = 100000, step = 1000)
-        state_df = state_df[(state_df['price'] != 0) & (state_df['price'] < maxPrice) & (state_df['price'] > minPrice)]
+        minPrice = st.sidebar.number_input("Minimum Price", min_value = 1, value = 1000, step = 1000)
+        maxPrice = st.sidebar.number_input("Maximum Price", min_value = minPrice, value = 100000, step = 1000)
+        state_df = state_df[(state_df['price'] <= maxPrice) & (state_df['price'] >= minPrice)]
+    return state_df, localCar, area, minPrice, maxPrice
+@st.cache
+def convert_df(df):
+     return df.to_csv().encode('utf-8')
+
+def selectedDataVisualization(state_df, localCar, stateCode):
+    if type(stateCode) == str:
+        n, averagePrice, averageYear = calcuateAveragePrice(localCar)
+        state_name = code2name(stateCode)
+        st.markdown(f"There are **{n}** listed car in **{area}{state_name}** that match the price. The average model year is **{averageYear}**. The average price is **{averagePrice}** USD($).")
+        with st.expander("Click to view data"):
+            st.dataframe(localCar,1000,500)
+            st.download_button("Click here to download data", convert_df(localCar), file_name = f"{area}{state_name}.csv", help = "Download the data as shown above. Named by area(if selected) and state. In CSV format")
+    if type(stateCode) == list:
         for c in stateCode:
             oneState = state_df[state_df['state'] == c]
             localCar[c] = oneState
             n, averagePrice, averageYear = calcuateAveragePrice(oneState)
             state_name = code2name(c)
-            st.markdown(f"There are **{n}** listed car in **{area}{state_name}**. The average model year is **{averageYear}**. The average price is **{averagePrice}** USD($).")
+            st.markdown(f"There are **{n}** listed car in **{area}{state_name}** that match the price. The average model year is **{averageYear}**. The average price is **{averagePrice}** USD($).")
             with st.expander("Click to view data"):
                 st.dataframe(oneState,1000,500)
-    return localCar, area, minPrice, maxPrice
+                st.download_button("Click here to download data", convert_df(oneState), file_name = f"{area}{state_name}.csv", help = "Download the data as shown above. Named by state. In CSV format")
 
 def calcuateAveragePrice(localCar):
     n = len(localCar)
-    totalYear = localCar['year'].sum(axis= 0)
+    totalYear = localCar['year'].sum(axis = 0)
     totalPrice = localCar['price'].sum(axis = 0)
     averagePrice = totalPrice // n
     averageYear = totalYear // n
@@ -107,41 +124,52 @@ def mapOfAveragePrice():
     m.to_streamlit(weight = 1000, height = 600)
 
 @st.cache(allow_output_mutation = True, show_spinner = False)
-def load_model(path):
-    df, allState = readData(path)
-    return df, allState
+def load_Data(path):
+    df, allState, totalNumberOfListing = readData(path)
+    return df, allState, totalNumberOfListing
 
-df, allState = load_model("C:/Users/13520/Documents/GitHub/Used_Car_Analysis/used_car_us.csv")
-viewMode = st.sidebar.select_slider(label = "Viewing Mode", options = ['Single Mode', 'Compare Mode'], value = 'Compare Mode')
+df, allState, totalNumberOfListing = load_Data("C:/Users/13520/Documents/GitHub/Used_Car_Analysis/used_car_us.csv")
+st.sidebar.title("Options")
+viewMode = st.sidebar.select_slider(label = "Viewing Mode", options = ['Single Mode', 'Compare Mode'], value = 'Single Mode')
 if viewMode == "Single Mode":
     stateName = st.sidebar.selectbox("Select a state you want to view", (allState), index = 5)
 if viewMode == "Compare Mode":
-    stateName = st.multiselect("Select states that you want to compare", (allState), default = None)
+    onlyStates = allState.copy()
+    onlyStates.remove("All States")
+    stateName = st.multiselect("Select states that you want to compare", (onlyStates), help = "Choose as many state as you want", default = None)
 if stateName == []:
-    st.markdown("## Choose one state to begin compare!")
+    st.markdown("### Choose one state to begin compare!")
 if stateName != []:
     if stateName == "All States":
         with st.container():
-            localCar, area, minPrice, maxPrice = countyDataVisualization(df, "United States")
-            listingMap(localCar)
+            state_df, localCar, area, minPrice, maxPrice = dataPreprocessing(df, "United States")
+            listingMap(localCar, stateName)
+            st.metric("Proportion to entire Data Set", f"{round(len(localCar) * 100 / totalNumberOfListing, 2)}%")
+            selectedDataVisualization(state_df, localCar, "United States")
         with st.container():
             scatterTrend(localCar, minPrice, maxPrice, viewMode)
         with st.container():
             manufacture(localCar, area, stateName)
-            
     else:
         stateCode = name2code(stateName)
         state_df = selectState(stateCode)
         with st.container():
-            localCar, area, minPrice, maxPrice = countyDataVisualization(state_df, stateCode)
+            state_df, localCar, area, minPrice, maxPrice = dataPreprocessing(state_df, stateCode)
             if viewMode == "Single Mode":
-                listingMap(localCar)
+                listingMap(localCar, stateName)
+                st.metric("Proportion to entire Data Set", f"{round(len(localCar) * 100 / totalNumberOfListing, 2)}%")
+                selectedDataVisualization(state_df, localCar, stateCode)
             if viewMode == "Compare Mode":
-                listingMap(state_df)
+                listingMap(state_df, stateName)
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.metric("Number of states selected", f"{len(stateName)}/{len(allState)}")
+                with col2:
+                    st.metric("Proportion to entire Data Set", f"{round(len(state_df) * 100 / totalNumberOfListing, 2)}%")
+                selectedDataVisualization(state_df, localCar, stateCode)
         with st.container():
             scatterTrend(state_df, minPrice, maxPrice, viewMode)
         with st.container():
-            manufacture(localCar, area, stateName)
-            
+            manufacture(localCar, area, stateName)            
 # mapOfAveragePrice()
 # geocoder("santa barbara", "ca")
