@@ -2,11 +2,13 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import dask.dataframe as dd
-# import leafmap.foliumap as leafmap
+# import multiprocessing
 from stateCode2state import name2code, code2name
 from scatterPlot import scatterTrend
 from bar_map import state2Coor, listingMap
 from manufacturePlot import manufacture
+from time import process_time
+from Heatmap import heatmap
 
 st.set_page_config(
     page_title = "Used Car Analyzer",
@@ -128,6 +130,7 @@ def load_Data(path):
     df, allState, totalNumberOfListing = readData(path)
     return df, allState, totalNumberOfListing
 
+t1_start = process_time() 
 df, allState, totalNumberOfListing = load_Data("C:/Users/13520/Documents/GitHub/Used_Car_Analysis/used_car_us.csv")
 st.sidebar.title("Options")
 viewMode = st.sidebar.select_slider(label = "Viewing Mode", options = ['Single Mode', 'Compare Mode'], value = 'Single Mode')
@@ -136,14 +139,27 @@ if viewMode == "Single Mode":
 if viewMode == "Compare Mode":
     onlyStates = allState.copy()
     onlyStates.remove("All States")
-    stateName = st.multiselect("Select states that you want to compare", (onlyStates), help = "Choose as many state as you want", default = None)
+    col1, col2 = st.columns(2)
+    with col1:
+        stateName = st.multiselect("Select states that you want to compare", (onlyStates), help = "Choose as many state as you want", default = None)
 if stateName == []:
     st.markdown("### Choose one state to begin compare!")
 if stateName != []:
     if stateName == "All States":
         with st.container():
             state_df, localCar, area, minPrice, maxPrice = dataPreprocessing(df, "United States")
-            listingMap(localCar, stateName)
+            mapChosen = st.radio("Map viewing mode", options = ['2D Heatmap', '3D Barmap', 'Both maps'], index = 0, horizontal = True, help = "Click to change view. Try it out!")
+            if mapChosen == "3D Barmap":
+                with st.container():
+                    listingMap(localCar, stateName)
+            if mapChosen == "2D Heatmap":
+                with st.container():
+                    heatmap(state_df, stateName)
+            if mapChosen == "Both maps":
+                with st.container():
+                    listingMap(localCar, stateName)
+                with st.container():
+                    heatmap(state_df, stateName)
             st.metric("Proportion to entire Data Set", f"{round(len(localCar) * 100 / totalNumberOfListing, 2)}%")
             selectedDataVisualization(state_df, localCar, "United States")
         with st.container():
@@ -156,11 +172,32 @@ if stateName != []:
         with st.container():
             state_df, localCar, area, minPrice, maxPrice = dataPreprocessing(state_df, stateCode)
             if viewMode == "Single Mode":
-                listingMap(localCar, stateName)
+                mapChosen = st.radio("Map viewing mode", options = ['2D Heatmap', '3D Barmap', 'Both maps'], index = 0, horizontal = True, help = "Click to change view. Try it out!")
+                if mapChosen == "3D Barmap":
+                    with st.container():
+                        listingMap(localCar, stateName)
+                if mapChosen == "2D Heatmap":
+                    with st.container():
+                        heatmap(state_df, stateName)
+                if mapChosen == "Both maps":
+                    with st.container():
+                        listingMap(state_df, stateName)
+                        heatmap(state_df, stateName)
                 st.metric("Proportion to entire Data Set", f"{round(len(localCar) * 100 / totalNumberOfListing, 2)}%")
                 selectedDataVisualization(state_df, localCar, stateCode)
             if viewMode == "Compare Mode":
-                listingMap(state_df, stateName)
+                with col2:
+                    mapChosen = st.radio("Map viewing mode", options = ['2D Heatmap', '3D Barmap', 'Both maps'], index = 0, horizontal = True, help = "Click to change view. Try it out!")
+                if mapChosen == "3D Barmap":
+                    with st.container():
+                        listingMap(state_df, stateName)
+                if mapChosen == "2D Heatmap":
+                    with st.container():
+                        heatmap(state_df, stateName)
+                if mapChosen == "Both maps":
+                    with st.container():
+                        listingMap(state_df, stateName)
+                        heatmap(state_df, stateName)
                 col1, col2 = st.columns(2)
                 with col1:
                     st.metric("Number of states selected", f"{len(stateName)}/{len(allState)}")
@@ -168,8 +205,14 @@ if stateName != []:
                     st.metric("Proportion to entire Data Set", f"{round(len(state_df) * 100 / totalNumberOfListing, 2)}%")
                 selectedDataVisualization(state_df, localCar, stateCode)
         with st.container():
+            # p2 = multiprocessing.Process(target = scatterTrend, args = [state_df, minPrice, maxPrice, viewMode])
+            # p2.start()
             scatterTrend(state_df, minPrice, maxPrice, viewMode)
         with st.container():
-            manufacture(localCar, area, stateName)            
+            # p3 = multiprocessing.Process(target = scatterTrend, args = [localCar, area, stateName])
+            # p3.start()
+            manufacture(localCar, area, stateName)
+t1_stop = process_time()
+st.write(t1_stop - t1_start)
 # mapOfAveragePrice()
 # geocoder("santa barbara", "ca")

@@ -6,7 +6,7 @@ import pydeck as pdk
 
 def state2Coor(stateName):
     if (type(stateName) == list and len(stateName) > 1) or stateName == "All States":
-        return 39.155726, -98.030561, 3.5
+        return 38.155726, -98.030561, 3.5
     else:
         path = "C:/Users/13520/Documents/GitHub/Used_Car_Analysis/statelatlong.csv"
         dask = dd.read_csv(path, dtype = {"State":str, "Name": str, "Latitude": float, "Longitude": float})
