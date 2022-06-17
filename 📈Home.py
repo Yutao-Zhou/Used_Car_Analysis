@@ -130,7 +130,7 @@ def load_Data(path):
     return df, allState, totalNumberOfListing
 
 t1_start = process_time() 
-df, allState, totalNumberOfListing = load_Data("C:/Users/13520/Documents/GitHub/Used_Car_Analysis/used_car_us.csv")
+df, allState, totalNumberOfListing = load_Data("./used_car_us.csv")
 st.balloons()
 st.sidebar.title("Options")
 viewMode = st.sidebar.select_slider(label = "Viewing Mode", options = ['Single Mode', 'Compare Mode'], value = 'Single Mode')
@@ -157,9 +157,9 @@ if stateName != []:
                     heatmap(state_df, stateName)
             if mapChosen == "Both maps":
                 with st.container():
-                    listingMap(state_df, stateName)
-                with st.container():
                     heatmap(state_df, stateName)
+                with st.container():
+                    listingMap(state_df, stateName)
             st.metric("Proportion to entire Data Set", f"{round(len(localCar) * 100 / totalNumberOfListing, 2)}%")
             selectedDataVisualization(state_df, localCar, "United States")
         with st.container():
@@ -181,8 +181,9 @@ if stateName != []:
                         heatmap(localCar, stateName)
                 if mapChosen == "Both maps":
                     with st.container():
-                        listingMap(localCar, stateName)
                         heatmap(localCar, stateName)
+                    with st.container():
+                        listingMap(localCar, stateName)
                 st.metric("Proportion to entire Data Set", f"{round(len(localCar) * 100 / totalNumberOfListing, 2)}%")
                 selectedDataVisualization(state_df, localCar, stateCode)
             if viewMode == "Compare Mode":
@@ -196,8 +197,9 @@ if stateName != []:
                         heatmap(state_df, stateName)
                 if mapChosen == "Both maps":
                     with st.container():
-                        listingMap(state_df, stateName)
                         heatmap(state_df, stateName)
+                    with st.container():
+                        listingMap(state_df, stateName)
                 col1, col2 = st.columns(2)
                 with col1:
                     st.metric("Number of states selected", f"{len(stateName)}/{len(allState)}")
