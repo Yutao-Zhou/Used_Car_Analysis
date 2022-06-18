@@ -30,10 +30,12 @@ with col1:
         <b>Special thanks to <em>Ling Cai</em>. She had been giving me advise on daily bases to make this app better. Without her this app would not be possible.</b><br><br>
         I had put a lot of time into it to make is as good as possible and I am proud of it. If you have any suggestion plese do not hazetate to contact me by {'<a href="mailto:13520759678@163.com">email</a>'}.
     """, unsafe_allow_html = True)
-    st.write("Connect me on Linkedin:")
-    if st.button("Click here to go to my Linkedin page"):
-        webbrowser.open("https://www.linkedin.com/in/yutao-zhou/")
+    st.markdown(f"""
+        Connect me on <em>Linkedin</em>: Click {'<a href="https://www.linkedin.com/in/yutao-zhou/">here</a>'} to go to my Linkedin page
+        """, unsafe_allow_html = True)
 audio_file = open('piano.mp3', 'rb')
 audio_bytes = audio_file.read()
 st.audio(audio_bytes)
-st.markdown("Music by <a href='/users/zakharvalaha-22836301/?tab=audio&amp;utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=audio&amp;utm_content=9784'>ZakharValaha</a> from <a href='https://pixabay.com/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=9784'>Pixabay</a>")
+st.markdown(f"""
+    Music by {'<a href="/users/zakharvalaha-22836301/?tab=audio&amp;utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=audio&amp;utm_content=9784">ZakharValaha</a>'} from {'<a href="https://pixabay.com/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=9784">Pixabay</a>'}
+    """, unsafe_allow_html = True)
