@@ -40,7 +40,7 @@ def sidebar(allRegionInState, stateCode):
     return minPrice, maxPrice, area
 
 def readData(path):
-    with st.spinner("Loading, Please Wait!"):
+    with st.spinner("Loading Data, Please Wait!"):
         dtypes = {
                 'state': 'str',
                 'region': 'str',
@@ -132,23 +132,25 @@ def load_Data(path):
 
 t1_start = process_time() 
 df, allState, totalNumberOfListing = load_Data("./used_car_us.csv")
+st.title("Used Car Analyzer")
 #### User Authentication ####
 names = ["Guest", "Yutao Zhou", "Ling Cai"]
 usernames = ["guest", "yutaozhou", "lingcai"]
-
 file_path = Path(__file__).parent / "hashed_pw.pkl"
 with file_path.open("rb") as file:
     hashed_passwords = pickle.load(file)
 authenticator = stauth.Authenticate(names, usernames, hashed_passwords, "Used_Car_Analyzer", "empty", cookie_expiry_days=30)
 name, authentication_status, username = authenticator.login("Login", "main")
 if authentication_status == False:
-    st.error("Username and password pair is incorrect")
+    if not username:
+        st.warning("Username cannot be empty")
+    else:
+        st.error("Username and password pair is incorrect")
 if authentication_status == None:
-    st.warning("Please enter your username and password")
+    st.info("Please enter your username and password")
 if authentication_status:
 #### Authentication Finished ####
     st.balloons()
-    st.title("Used Car Analyzer")
     authenticator.logout("Logout", "sidebar")
     st.sidebar.title(f"Welcome, {name}.")
     st.sidebar.title("Options")
@@ -234,6 +236,6 @@ if authentication_status:
                 # p3.start()
                 manufacture(localCar, area, stateName)
     t1_stop = process_time()
-    st.write(t1_stop - t1_start)
+    st.write(f"Runtime: {t1_stop - t1_start} s")
     # mapOfAveragePrice()
     # geocoder("santa barbara", "ca")

@@ -24,7 +24,7 @@ with col2:
 with col1:
     st.markdown(f"""
         <b>Hi there I am <em>Yutao Zhou</em>, the creater of this app. </b><br>
-        This is a webapp that could visualize data about used car in U.S. with features like compare between states; see listing in differnt maps; plots and chars. The data is from {'<a href="craigslist.org">craigslist.org</a>'}<br><br>
+        This is a data visualization app that present used car data in U.S. with features like: compare statistical data of used car in different states, viewing data in differnt interactive maps, scatter plots, and pie chars. There are more than 365k valid data in the dataset I used for this webapp. The data is from used car listing on {'<a href="craigslist.org">craigslist.org</a>'}<br><br>
         This is a personal project by Yutao Zhou starting from scratch. I am a car guy. At June 7th 2022, I had a random idea to visualize a lot of used car listing in USA. I thought it would be really cool. So I decided to make it come true.
         For how I build this app step by step, please look at my {'<a href="https://github.com/Yutao-Zhou/Used_Car_Analysis/commits/main">github commits</a>'}.<br><br>
         <b>Special thanks to <em>Ling Cai</em>. She had been giving me advise on daily bases to make this app better. Without her this app would not be possible.</b><br><br>

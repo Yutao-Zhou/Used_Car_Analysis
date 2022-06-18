@@ -19,17 +19,18 @@ def state2Coor(stateName):
         return latitude, Longitude, 5
 
 def listingMap(data, stateName):
-    latitude, longitude, zoom = state2Coor(stateName)
-    view = pdk.ViewState(latitude = latitude, longitude = longitude, pitch = 50, zoom = zoom)
-    column_layer = pdk.Layer('ColumnLayer',
-                             data = data,
-                             get_position = ['long', 'lat'],
-                             get_elevation = 'price',
-                             elevation_scale = 1,
-                             radius = 1000,
-                             get_fill_color = [255, 153, 0, 80],
-                             pickable = True,
-                             auto_highlight = True)
-    column_layer_map = pdk.Deck(layers = column_layer, 
-                                initial_view_state = view)
-    st.pydeck_chart(column_layer_map)
+    with st.spinner('Loading 3D Barmap'):
+        latitude, longitude, zoom = state2Coor(stateName)
+        view = pdk.ViewState(latitude = latitude, longitude = longitude, pitch = 50, zoom = zoom)
+        column_layer = pdk.Layer('ColumnLayer',
+                                 data = data,
+                                 get_position = ['long', 'lat'],
+                                 get_elevation = 'price',
+                                 elevation_scale = 1,
+                                 radius = 1000,
+                                 get_fill_color = [255, 153, 0, 80],
+                                 pickable = True,
+                                 auto_highlight = True)
+        column_layer_map = pdk.Deck(layers = column_layer, 
+                                    initial_view_state = view)
+        st.pydeck_chart(column_layer_map)

@@ -61,6 +61,8 @@ def manufacture(localCar, area, statename):
 				if numberPerRow < 3:
 					legendVisibility = st.checkbox("show legend", value = True, help = "Check to show legend")
 			cols = st.columns(numberPerRow)
+			numberOfPlot = len(allFiger)
+			progress_bar = st.progress(0)
 			while allFiger:
 				for col in cols:
 					with col:
@@ -71,5 +73,6 @@ def manufacture(localCar, area, statename):
 						if not allFiger:
 							break
 						n += 1
+						progress_bar.progress(n / numberOfPlot)
 					if not n % numberPerRow:
 						cols = st.columns(numberPerRow)
