@@ -97,7 +97,7 @@ def selectedDataVisualization(state_df, localCar, stateCode):
     if type(stateCode) == str:
         n, averagePrice, averageYear = calcuateAveragePrice(localCar)
         state_name = code2name(stateCode)
-        st.markdown(f"There are **{n}** listed car in **{area}{state_name}** that match the price. The average model year is **{averageYear}**. The average price is **{averagePrice}** USD($).")
+        st.markdown(f"There are **{n}** cars in **{area}{state_name}** that match the price in this dataset. The average model year is **{averageYear}**. The average price is **{averagePrice}** USD($).")
         with st.expander("Click to view data"):
             st.dataframe(localCar,1000,500)
             st.download_button("Click here to download data", convert_df(localCar), file_name = f"{area}{state_name}.csv", help = "Download the data as shown above. Named by area(if selected) and state. In CSV format")
@@ -107,7 +107,7 @@ def selectedDataVisualization(state_df, localCar, stateCode):
             localCar[c] = oneState
             n, averagePrice, averageYear = calcuateAveragePrice(oneState)
             state_name = code2name(c)
-            st.markdown(f"There are **{n}** listed car in **{area}{state_name}** that match the price. The average model year is **{averageYear}**. The average price is **{averagePrice}** USD($).")
+            st.markdown(f"There are **{n}** cars in **{area}{state_name}** that match the price in this dataset. The average model year is **{averageYear}**. The average price is **{averagePrice}** USD($).")
             with st.expander("Click to view data"):
                 st.dataframe(oneState,1000,500)
                 st.download_button("Click here to download data", convert_df(oneState), file_name = f"{area}{state_name}.csv", help = "Download the data as shown above. Named by state. In CSV format")
@@ -193,6 +193,8 @@ if authentication_status:
             with st.container():
                 state_df, localCar, area, minPrice, maxPrice = dataPreprocessing(state_df, stateCode)
                 if viewMode == "Single Mode":
+                    st.metric("Numer of cars mathced", len(localCar))
+                    selectedDataVisualization(state_df, localCar, stateCode)
                     mapChosen = st.radio("Map viewing mode", options = ['2D Heatmap', '3D Barmap', 'Both maps'], index = 0, horizontal = True, help = "Click to change view. Try it out!")
                     if mapChosen == "3D Barmap":
                         with st.container():
@@ -205,9 +207,13 @@ if authentication_status:
                             heatmap(localCar, stateName)
                         with st.container():
                             listingMap(localCar, stateName)
-                    st.metric("Proportion to entire Data Set", f"{round(len(localCar) * 100 / totalNumberOfListing, 2)}%")
-                    selectedDataVisualization(state_df, localCar, stateCode)
                 if viewMode == "Compare Mode":
+                    metric1, metric2 = st.columns(2)
+                    with metric1:
+                        st.metric("Number of states selected", f"{len(stateName)}/{len(allState)}")
+                    with metric2:
+                        st.metric("Numer of cars mathced", len(state_df))
+                    selectedDataVisualization(state_df, localCar, stateCode)
                     with col2:
                         mapChosen = st.radio("Map viewing mode", options = ['2D Heatmap', '3D Barmap', 'Both maps'], index = 0, horizontal = True, help = "Click to change view. Try it out!")
                     if mapChosen == "3D Barmap":
@@ -221,12 +227,6 @@ if authentication_status:
                             heatmap(state_df, stateName)
                         with st.container():
                             listingMap(state_df, stateName)
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.metric("Number of states selected", f"{len(stateName)}/{len(allState)}")
-                    with col2:
-                        st.metric("Proportion to entire Data Set", f"{round(len(state_df) * 100 / totalNumberOfListing, 2)}%")
-                    selectedDataVisualization(state_df, localCar, stateCode)
             with st.container():
                 # p2 = multiprocessing.Process(target = scatterTrend, args = [state_df, minPrice, maxPrice, viewMode])
                 # p2.start()

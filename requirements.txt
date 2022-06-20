@@ -39,6 +39,7 @@ future==0.18.2
 gdown==4.4.0
 geocoder==1.38.1
 geojson==2.5.0
+geopy==2.2.0
 gitdb==4.0.9
 GitPython==3.1.27
 google==3.0.0
@@ -123,6 +124,7 @@ sniffio==1.2.0
 stack-data==0.2.0
 statsmodels==0.13.2
 streamlit==1.10.0
+streamlit_authenticator==0.1.5
 threadpoolctl==3.1.0
 tinycss2==1.1.1
 tqdm==4.64.0
