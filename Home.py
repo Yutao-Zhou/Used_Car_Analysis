@@ -5,6 +5,7 @@ import dask.dataframe as dd
 import pickle
 import streamlit_authenticator as stauth
 from pathlib import Path
+from generalVisualization import selectedDataVisualization
 from stateCode2state import name2code, code2name
 from scatterPlot import scatterTrend
 from bar_map import state2Coor, listingMap
@@ -89,36 +90,6 @@ def dataPreprocessing(state_df, stateCode):
         maxPrice = st.sidebar.number_input("Maximum Price", min_value = minPrice, value = 100000, step = 1000)
         state_df = state_df[(state_df['price'] <= maxPrice) & (state_df['price'] >= minPrice)]
     return state_df, localCar, area, minPrice, maxPrice
-@st.cache
-def convert_df(df):
-     return df.to_csv().encode('utf-8')
-
-def selectedDataVisualization(state_df, localCar, stateCode):
-    if type(stateCode) == str:
-        n, averagePrice, averageYear = calcuateAveragePrice(localCar)
-        state_name = code2name(stateCode)
-        st.markdown(f"There are **{n}** cars in **{area}{state_name}** that match the price in this dataset. The average model year is **{averageYear}**. The average price is **{averagePrice}** USD($).")
-        with st.expander("Click to view data"):
-            st.dataframe(localCar,1000,500)
-            st.download_button("Click here to download data", convert_df(localCar), file_name = f"{area}{state_name}.csv", help = "Download the data as shown above. Named by area(if selected) and state. In CSV format")
-    if type(stateCode) == list:
-        for c in stateCode:
-            oneState = state_df[state_df['state'] == c]
-            localCar[c] = oneState
-            n, averagePrice, averageYear = calcuateAveragePrice(oneState)
-            state_name = code2name(c)
-            st.markdown(f"There are **{n}** cars in **{area}{state_name}** that match the price in this dataset. The average model year is **{averageYear}**. The average price is **{averagePrice}** USD($).")
-            with st.expander("Click to view data"):
-                st.dataframe(oneState,1000,500)
-                st.download_button("Click here to download data", convert_df(oneState), file_name = f"{area}{state_name}.csv", help = "Download the data as shown above. Named by state. In CSV format")
-
-def calcuateAveragePrice(localCar):
-    n = len(localCar)
-    totalYear = localCar['year'].sum(axis = 0)
-    totalPrice = localCar['price'].sum(axis = 0)
-    averagePrice = totalPrice // n
-    averageYear = totalYear // n
-    return n, averagePrice, averageYear
 
 def mapOfAveragePrice():
     m = leafmap.Map(center = (38, -122), zoom = 6, locate_control = True)
@@ -129,6 +100,13 @@ def mapOfAveragePrice():
 def load_Data(path):
     df, allState, totalNumberOfListing = readData(path)
     return df, allState, totalNumberOfListing
+
+def queryResutls(localCar, totalNumberOfListing):
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Numer of cars mathced", len(localCar), "")
+    with col2:
+        st.metric("Proportion to entire Data Set", f"{round(len(localCar) * 100 / totalNumberOfListing, 2)}%")
 
 t1_start = process_time() 
 df, allState, totalNumberOfListing = load_Data("./used_car_us.csv")
@@ -169,6 +147,8 @@ if authentication_status:
         if stateName == "All States":
             with st.container():
                 state_df, localCar, area, minPrice, maxPrice = dataPreprocessing(df, "United States")
+                queryResutls(localCar, totalNumberOfListing)
+                selectedDataVisualization(area, state_df, localCar, "United States")
                 mapChosen = st.radio("Map viewing mode", options = ['2D Heatmap', '3D Barmap', 'Both maps'], index = 0, horizontal = True, help = "Click to change view. Try it out!")
                 if mapChosen == "3D Barmap":
                     with st.container():
@@ -181,20 +161,18 @@ if authentication_status:
                         heatmap(state_df, stateName)
                     with st.container():
                         listingMap(state_df, stateName)
-                st.metric("Proportion to entire Data Set", f"{round(len(localCar) * 100 / totalNumberOfListing, 2)}%")
-                selectedDataVisualization(state_df, localCar, "United States")
             with st.container():
-                scatterTrend(localCar, minPrice, maxPrice, viewMode)
+                scatterTrend(state_df, minPrice, maxPrice, viewMode)
             with st.container():
-                manufacture(localCar, area, stateName)
+                manufacture(state_df, area, stateName)
         else:
             stateCode = name2code(stateName)
             state_df = selectState(stateCode)
             with st.container():
                 state_df, localCar, area, minPrice, maxPrice = dataPreprocessing(state_df, stateCode)
                 if viewMode == "Single Mode":
-                    st.metric("Numer of cars mathced", len(localCar))
-                    selectedDataVisualization(state_df, localCar, stateCode)
+                    queryResutls(localCar, totalNumberOfListing)
+                    selectedDataVisualization(area, state_df, localCar, stateCode)
                     mapChosen = st.radio("Map viewing mode", options = ['2D Heatmap', '3D Barmap', 'Both maps'], index = 0, horizontal = True, help = "Click to change view. Try it out!")
                     if mapChosen == "3D Barmap":
                         with st.container():
@@ -208,12 +186,14 @@ if authentication_status:
                         with st.container():
                             listingMap(localCar, stateName)
                 if viewMode == "Compare Mode":
-                    metric1, metric2 = st.columns(2)
+                    metric1, metric2, metric3 = st.columns(3)
                     with metric1:
                         st.metric("Number of states selected", f"{len(stateName)}/{len(allState)}")
                     with metric2:
                         st.metric("Numer of cars mathced", len(state_df))
-                    selectedDataVisualization(state_df, localCar, stateCode)
+                    with metric3:
+                        st.metric("Proportion to entire Data Set", f"{round(len(state_df) * 100 / totalNumberOfListing, 2)}%")
+                    selectedDataVisualization(area, state_df, localCar, stateCode)
                     with col2:
                         mapChosen = st.radio("Map viewing mode", options = ['2D Heatmap', '3D Barmap', 'Both maps'], index = 0, horizontal = True, help = "Click to change view. Try it out!")
                     if mapChosen == "3D Barmap":

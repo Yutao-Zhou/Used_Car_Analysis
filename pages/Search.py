@@ -4,6 +4,7 @@ import numpy as np
 import dask.dataframe as dd
 import pickle
 import streamlit_authenticator as stauth
+import requests
 from geopy.geocoders import Nominatim
 from geopy.distance import geodesic as GD
 from pathlib import Path
@@ -14,7 +15,6 @@ from manufacturePlot import manufacture
 from time import process_time
 from Heatmap import heatmap
 from ListingMap import listingMap
-# import Home as H
 
 st.set_page_config(
     page_title = "Used Car Analyzer",
@@ -102,9 +102,9 @@ def advanceModeOptions(queryDf):
 		if fuelType != "Any":
 			fuelType = fuelType.lower()
 	with col2:
-		nOfCylinders = st.multiselect("Number of cylinders", ["Any", "3 cylinders", "4 cylinders", "5 cylinders", "6 cylinders", "8 cylinders", "10 cylinders", "12 cylinders", "16 cylinders"], default = "Any", help = "Click to choose the number of cinlinders for the engine")
-		if "Any" in nOfCylinders:
-			nOfCylinders = ["3 cylinders", "4 cylinders", "5 cylinders", "6 cylinders", "8 cylinders", "10 cylinders", "12 cylinders", "16 cylinders"]
+		titleType = st.radio("Choose a title status", options = ["Any", "Clean title", "Rebuilt title", "Salvage title"], index = 0, help = "Click to choose a tilte status")
+		conver = {"Any": "Any", "Clean title": "clean", "Rebuilt title": "rebuilt", "Salvage title": "salvage"}
+		titleType = conver[titleType]
 	with col3:
 		transmissionType = st.radio("Choose a transmission type", options = ["Any", "Automatic", "Manual"], index = 0, help = "Click to choose a transmission type")
 		if transmissionType != "Any":
@@ -114,9 +114,9 @@ def advanceModeOptions(queryDf):
 		conver = {"Any": "Any", "Front Wheel Drive": "fwd", "Rear Wheel Drive": "rwd", "All Wheel Drive/4 Wheel Drive": "4wd"}
 		driveType = conver[driveType]
 	with col5:
-		titleType = st.radio("Choose a title status", options = ["Any", "Clean title", "Rebuilt title", "Salvage title"], index = 0, help = "Click to choose a tilte status")
-		conver = {"Any": "Any", "Clean title": "clean", "Rebuilt title": "rebuilt", "Salvage title": "salvage"}
-		titleType = conver[titleType]
+		nOfCylinders = st.multiselect("Number of cylinders", ["Any", "3 cylinders", "4 cylinders", "5 cylinders", "6 cylinders", "8 cylinders", "10 cylinders", "12 cylinders", "16 cylinders"], default = "Any", help = "Click to choose the number of cinlinders for the engine")
+		if "Any" in nOfCylinders:
+			nOfCylinders = ["3 cylinders", "4 cylinders", "5 cylinders", "6 cylinders", "8 cylinders", "10 cylinders", "12 cylinders", "16 cylinders"]
 	col1, col2, col3, col4 = st.columns([1, 1, 2, 1])
 	with col1:
 		carCondition = st.radio("Car Condition", options = ["Any", "Excellent", "New", "Like New", "Good", "Fair"], index = 0, help = "Click to choose the current condition of the vehicale")
@@ -162,7 +162,7 @@ def applyAdvanceFilter(queryDf, fuelType, nOfCylinders, transmissionType, driveT
 
 st.title("Used Car Analyzer")
 df, allState, totalNumberOfListing = load_Data("./used_car_us.csv")
-streetAddress = st.text_area("Enter a location that is convient for you", help = "City name, County name, or Landmark is good enough. (e.g. Columbia University)")
+streetAddress = st.text_area("Enter a location that is convient for you",  value = "nyc", help = "City name, County name, or Landmark is good enough. (e.g. Columbia University)")
 geolocator = Nominatim(user_agent="streamlit")
 location = geolocator.geocode(streetAddress)
 if streetAddress:
@@ -205,7 +205,11 @@ if streetAddress:
 				if len(queryDf) == 0:
 					st. warning("No car match! Please change the query.")
 				if len(queryDf) > 0:
-					st.metric("Numer of cars mathced", len(queryDf))
+					metric1, metric2 = st.columns(2)
+					with metric1:
+						st.metric("Numer of cars mathced", len(queryDf))
+					with metric2:
+						st.metric("Proportion to entire Data Set", f"{round(len(queryDf) * 100 / totalNumberOfListing, 2)}%")
 				st.dataframe(queryDf)
 				listingMap(queryDf)
 			if detailedFilter:
@@ -214,6 +218,21 @@ if streetAddress:
 					st. warning("No car match! Please change the query.")
 				if len(queryDf) > 0:
 					advanceDf = applyAdvanceFilter(queryDf, fuelType, nOfCylinders, transmissionType, driveType, titleType, carCondition, bodySize, carType, color)
-					st.metric("Numer of cars mathced", len(advanceDf))
+					metric1, metric2 = st.columns(2)
+					with metric1:
+						st.metric("Numer of cars mathced", len(queryDf))
+					with metric2:
+						st.metric("Proportion to entire Data Set", f"{round(len(queryDf) * 100 / totalNumberOfListing, 2)}%")
 				st.dataframe(advanceDf)
 				listingMap(advanceDf)
+			VIN = st.text_area("VIN Look Up tool. Enter the VIN of a vehicle that you are interested!", value = "1FD0X5HT6FEC65813")
+			if VIN:
+				URL = f"https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/{VIN}?format=json"
+				r = requests.get(URL)
+				if r.status_code == 200:
+					data = r.json()["Results"][0]
+					for k, v in data.items():
+						if v != "":
+							st.write(f"{k}:{v}")
+				else:
+					st.warning("Wrong VIN please enter again")
