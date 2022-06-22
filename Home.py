@@ -216,6 +216,6 @@ if authentication_status:
                 # p3.start()
                 manufacture(localCar, area, stateName)
     t1_stop = process_time()
-    st.write(f"Runtime: {t1_stop - t1_start} s")
+    st.write(f"Runtime: {round(t1_stop - t1_start, 2)} s")
     # mapOfAveragePrice()
     # geocoder("santa barbara", "ca")

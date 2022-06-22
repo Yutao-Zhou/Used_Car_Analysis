@@ -2,7 +2,7 @@ import streamlit as st
 import plotly.graph_objects as go
 import pandas as pd
 from stateCode2state import name2code, code2name
-import torch
+import numpy as np
 
 @st.cache
 def convert_df(df):
@@ -42,14 +42,14 @@ def selectedDataVisualization(area, state_df, localCar, stateCode):
                 st.markdown(f"There are **{n}** cars in **{area}{state_name}** that match the price in this dataset. The average model year is **{averageYear}**. The average price is **{averagePrice}** USD($).")
                 st.dataframe(oneState,1000,500)
                 st.download_button("Click here to download data", convert_df(oneState), file_name = f"{area}{state_name}.csv", help = "Download the data as shown above. Named by state. In CSV format")
-            dataTensor = torch.tensor([sN, sAverageYear, sAveragePrice])
-            dataTensor = dataTensor.transpose(0, 1)
-        barPlot(sName, dataTensor)
+            dataMatrix = np.array([sN, sAverageYear, sAveragePrice])
+            dataMatrix = np.transpose(dataMatrix)
+        barPlot(sName, dataMatrix)
 
-def barPlot(sName, dataTensor):
+def barPlot(sName, dataMatrix):
     parameters = ['Number of Cars', 'Average Model Year', 'Average Car Price in dollars($)']
     fig = go.Figure()
-    for idn, n in enumerate(dataTensor):
+    for idn, n in enumerate(dataMatrix):
         fig.add_trace(go.Bar(
             x = parameters,
             y = n,
