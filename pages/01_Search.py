@@ -15,6 +15,8 @@ from manufacturePlot import manufacture
 from time import process_time
 from Heatmap import heatmap
 from ListingMap import listingMap
+from keyPhraseExtraction import getKeyPhrase
+from geoencoding import coordinate2Address
 
 st.set_page_config(
     page_title = "Used Car Analyzer",
@@ -50,9 +52,11 @@ def readData(path):
                 'size': 'str',
                 'title_status': 'str',
                 'transmission': 'str',
-                'type': 'str'
+                'type': 'str',
+                'description': 'str',
+                'posting_date': 'str'
                 }
-        dask = dd.read_csv(path, skip_blank_lines=True, usecols = ['state','region','lat', 'long','year','odometer','price','manufacturer', 'model', 'condition', 'cylinders', 'fuel', 'title_status', 'transmission', 'VIN', 'drive', 'size', 'type', 'paint_color'], dtype = dtypes) # more detailed data
+        dask = dd.read_csv(path, skip_blank_lines=True, usecols = ['state','region','lat', 'long','year','odometer','price','manufacturer', 'model', 'condition', 'cylinders', 'fuel', 'title_status', 'transmission', 'VIN', 'drive', 'size', 'type', 'paint_color', 'description', 'posting_date'], dtype = dtypes) # more detailed data
         df = dask.compute()
         df.dropna(inplace = True)
         df = df[df['price'] != 0]
@@ -66,7 +70,7 @@ def readData(path):
     return df, allState, totalNumberOfListing
 
 @st.cache(allow_output_mutation = True, show_spinner = False)
-def load_Data(path):
+def load_Search_Data(path):
     df, allState, totalNumberOfListing = readData(path)
     return df, allState, totalNumberOfListing
 
@@ -159,9 +163,9 @@ def applyAdvanceFilter(queryDf, fuelType, nOfCylinders, transmissionType, driveT
 		advanceDf = advanceDf[(advanceDf['paint_color'].isin(color))]
 	return advanceDf
 
-
+t1_start = process_time()
 st.title("Used Car Analyzer")
-df, allState, totalNumberOfListing = load_Data("./used_car_us.csv")
+df, allState, totalNumberOfListing = load_Search_Data("./used_car_us.csv")
 streetAddress = st.text_area("Enter a location that is convient for you",  value = "nyc", help = "City name, County name, or Landmark is good enough. (e.g. Columbia University)")
 geolocator = Nominatim(user_agent="streamlit")
 location = geolocator.geocode(streetAddress)
@@ -211,7 +215,7 @@ if streetAddress:
 					with metric2:
 						st.metric("Proportion to entire Data Set", f"{round(len(queryDf) * 100 / totalNumberOfListing, 2)}%")
 				st.dataframe(queryDf)
-				listingMap(queryDf)
+				listingMap(queryDf, latitude, longitude)
 			if detailedFilter:
 				fuelType, nOfCylinders, transmissionType, driveType, titleType, carCondition, bodySize, carType, color = advanceModeOptions(queryDf)
 				if len(queryDf) == 0:
@@ -224,15 +228,51 @@ if streetAddress:
 					with metric2:
 						st.metric("Proportion to entire Data Set", f"{round(len(queryDf) * 100 / totalNumberOfListing, 2)}%")
 				st.dataframe(advanceDf)
-				listingMap(advanceDf)
-			VIN = st.text_area("VIN Look Up tool. Enter the VIN of a vehicle that you are interested!", value = "1FD0X5HT6FEC65813")
+				listingMap(advanceDf, latitude, longitude)
+			st.markdown("## VIN Look Up & AI key phrase generator")
+			VIN = st.text_area("Enter the VIN of the vehicle that you are interested!", value = "2LMHJ5NKXHBL01764")
+			VIN = VIN.strip()
+			VIN = "".join(VIN.split())
 			if VIN:
 				URL = f"https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/{VIN}?format=json"
 				r = requests.get(URL)
 				if r.status_code == 200:
 					data = r.json()["Results"][0]
-					for k, v in data.items():
-						if v != "":
-							st.write(f"{k}:{v}")
+					st.markdown("### VIN Check Result")
+					n = 0
+					cols = st.columns(4)
+					while data:
+						for col in cols:
+							with col:
+								d = data.popitem()
+								while d[1] == "":
+									d = data.popitem()
+									if not data:
+										break
+								if d[1] != "":
+									st.write(f"{d[0]}: {d[1]}")
+									n += 1
+								if not data:
+									break
+							if not n % 4:
+								cols = st.columns(4)
 				else:
 					st.warning("Wrong VIN please enter again")
+				if detailedFilter:
+					VINdata = advanceDf[advanceDf["VIN"] == VIN]
+					st.dataframe(VINdata.head(1))
+					address = coordinate2Address(VINdata.iloc[0]["lat"], VINdata.iloc[0]["long"])
+					st.write(f"Detailed Address: {address}")
+					description = str(VINdata.iloc[0]["description"])
+				if not detailedFilter:
+					VINdata = queryDf[queryDf["VIN"] == VIN]
+					st.dataframe(VINdata.head(1))
+					address = coordinate2Address(VINdata.iloc[0]["lat"], VINdata.iloc[0]["long"])
+					st.write(f"Detailed Address: {address}")
+					description = str(VINdata.iloc[0]["description"])
+				if description:
+					getKeyPhrase(description)
+				if not description:
+					st.warning("No discroption found.")
+t1_stop = process_time()
+st.write(f"Runtime: {round(t1_stop - t1_start, 2)} s")
