@@ -7,7 +7,7 @@ def listingMap(df, latitude, longitude):
     cScatter = st.color_picker("Pick a color for the scatter", value = "#48D1EA")
     with st.spinner("Plotting Listings cars"):
         fig = px.scatter_mapbox(df, lat = "lat", lon = "long", hover_name = "model", hover_data = ["price", "year", "manufacturer", "odometer", 'condition', 'cylinders', 'fuel', 'title_status', 'transmission', 'VIN', 'drive', 'size', 'type', 'paint_color', "region", "state", 'posting_date'],
-                            color_discrete_sequence = [cScatter], zoom = 3, height = 800)
+                            center = {'lat': latitude, 'lon': longitude}, opacity = 0.8, color_discrete_sequence = [cScatter], zoom = 5, height = 800)
         fig.update_layout(mapbox_style = basemap)
         fig.show()
         st.plotly_chart(fig, use_container_width = True)
