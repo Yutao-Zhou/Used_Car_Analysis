@@ -166,7 +166,7 @@ def applyAdvanceFilter(queryDf, fuelType, nOfCylinders, transmissionType, driveT
 t1_start = process_time()
 st.title("Used Car Analyzer")
 df, allState, totalNumberOfListing = load_Search_Data("./used_car_us.csv")
-streetAddress = st.text_area("Enter a location that is convient for you", help = "City name, County name, or Landmark is good enough. (e.g. Columbia University)")
+streetAddress = st.text_area("Enter a location that is convient for you", max_chars = 100, placeholder = "Enter Here", help = "City name, County name, or Landmark is good enough. (e.g. Columbia University)")
 geolocator = Nominatim(user_agent="streamlit")
 location = geolocator.geocode(streetAddress)
 if streetAddress:
